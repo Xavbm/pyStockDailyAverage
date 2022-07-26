@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: led
+  name: led
+spec:
+  terminationGracePeriodSeconds: 30
+  containers:
+    - image: xavbm/pystock
+      name: led
+      imagePullPolicy: "Always"
+      resources: {}
+  restartPolicy: OnFailure
+status: {}
