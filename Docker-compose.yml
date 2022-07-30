@@ -5,24 +5,3 @@ services:
     build: .
     restart: on-failure
     image: xavbm/pystock
-
-  jenkins:
-    container_name: jenkins
-    image: jenkins/jenkins
-    ports:
-      - "8080:8080"
-    volumes:
-      - "$PWD/jenkins_home:/var/jenkins_home"
-    networks:
-      - net 
-  sonarqube:
-    container_name: sonarqube
-    image: sonarqube
-    ports:
-      - "9000:9000"
-    volumes:
-      - "$PWD/sonarqube/data:/opt/sonarqube/data"
-      - "$PWD/sonarqube/extensions:/opt/sonarqube/extensions"
-      
-networks:
-  net: 

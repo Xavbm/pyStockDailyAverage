@@ -9,20 +9,20 @@ secrets:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: sinatra-hello-world-git
+  name: xavbm-pystockdailyaverage-git
 spec:
   type: git
   params:
     - name: revision
       value: main
     - name: url
-      value: https://github.com/BrianMMcClain/sinatra-hello-world
+      value: https://github.com/Xavbm/pyStockDailyAverage.git
 
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: spring-api-tekton-demo
+  name: docker-image-pystockdailyaverage
 spec:
   type: image
   params:
