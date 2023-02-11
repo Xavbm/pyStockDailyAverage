@@ -5,3 +5,7 @@ services:
     build: .
     restart: on-failure
     image: xavbm/pystock
+    volumes:
+      - type: bind
+        source: ./stockAndQuantity.py
+        target: /usr/src/app/stockAndQuantity.py

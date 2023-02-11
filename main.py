@@ -21,6 +21,7 @@ def __compute_weights():
         # Get html text
         html = requests.get(YAHOO_URL.format(key, key), headers=HEADERS).text
         soup = BeautifulSoup(html, 'html.parser')
+        print(value)
 
         # Get Previous close value
         td = soup.find("td", {"class":"Ta(end) Fw(600) Lh(14px)"})
@@ -49,8 +50,12 @@ def __compute_values():
         soup = BeautifulSoup(html, 'html.parser')
 
         # Get current percentage difference
-        fs = soup.find("fin-streamer", {"data-field":"regularMarketChangePercent", "data-symbol":f"{stock}"})
-        percentage = float(re.findall('value="([^"]*)"', str(fs))[0])*100
+        try:
+            fs = soup.find("fin-streamer", {"data-field":"regularMarketChangePercent", "data-symbol":f"{stock}"})
+            percentage = float(re.findall('value="([^"]*)"', str(fs))[0])*100
+        except:
+            print("Wrong value found, breaking loop and waiting for next loop.")
+            break
 
         value = percentage* weights[list(stock_quantity_dict.keys()).index(stock)]
         print("{:9}".format(stock) + "{:.2f}".format(value))
