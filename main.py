@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import requests
 from bs4 import BeautifulSoup
 import sched, time
-import requests 
+import requests
 from rgbDict import rgb_dict
 from stockAndQuantity import stock_quantity_dict
+import re
 
 SERVER_LED_URL = "http://192.168.1.66/all/color?color="
 
@@ -18,29 +18,15 @@ def __compute_weights():
     print("Start computing weights")
     for key, value in stock_quantity_dict.items():
 
-        # anchor to know where to start looking to get previous close value
-        anchor = 'Previous Close'
-        
         # Get html text
         html = requests.get(YAHOO_URL.format(key, key), headers=HEADERS).text
         soup = BeautifulSoup(html, 'html.parser')
-        soup_text = soup.get_text()
 
-        # Set index after anchor
-        anchor_index = soup_text.find(anchor)
-
-        # Trim text after anchor to reduce text and only have one ( to find
-        trimmed_text = soup_text[anchor_index + 14 : anchor_index + 21]
-
-        # Find ( to get start of percentage
-        end_index = trimmed_text.find('O')
-
-        if end_index != -1:
-            trimmed_text = trimmed_text[:end_index]
-
-        stock_price = trimmed_text
+        # Get Previous close value
+        td = soup.find("td", {"class":"Ta(end) Fw(600) Lh(14px)"})
+        stock_price = re.findall('>(.*?)<', str(td))[0]
         print(stock_price)
-
+        
         total_by_stock.append(float(stock_price) * value)
         
     total = sum(total_by_stock)
@@ -58,37 +44,15 @@ def __compute_values():
 
     for stock in stock_quantity_dict.keys():
 
-        # anchor to know where to start looking to get current value
-        anchor = 'Add to watchlist'
-        
         # Get html text
         html = requests.get(YAHOO_URL.format(stock, stock), headers=HEADERS).text
         soup = BeautifulSoup(html, 'html.parser')
-        soup_text = soup.get_text()
 
-        # Set index after anchor
-        anchor_index = soup_text.find(anchor)
+        # Get current percentage difference
+        fs = soup.find("fin-streamer", {"data-field":"regularMarketChangePercent", "data-symbol":f"{stock}"})
+        percentage = float(re.findall('value="([^"]*)"', str(fs))[0])*100
 
-        # Trim text after anchor to reduce text and only have one ( to find
-        trimmed_text = soup_text[anchor_index + 16 : anchor_index + 40]
-
-        # Find ( to get start of percentage
-        percentageStartIndex = trimmed_text.find('(') 
-
-        # Get percentage value
-        percentage = trimmed_text[percentageStartIndex + 1 : percentageStartIndex + 7]
-
-        # Remove ) if present when 0.00%
-        if percentage[-1:] == ')':
-            percentage = percentage[:-1]
-
-        # Remove % if present
-        if percentage[-1:] == '%':
-            percentage = percentage[:-1]
-
-        # Let crash and restart container
-        value = float(percentage)* weights[stock.index(stock)]
-
+        value = percentage* weights[list(stock_quantity_dict.keys()).index(stock)]
         print("{:9}".format(stock) + "{:.2f}".format(value))
 
         # Round 0 to keep 2 decimals
@@ -114,15 +78,17 @@ def __compute_values():
     print("{:9}".format("Total") + "{:.2f}".format(total))
 
 ## END LOOP FOR EACH STOCK
-print("Hello, welcome to the stock fetcher!")
-__compute_weights()
 
-print("Start rolling")
-s = sched.scheduler(time.time, time.sleep)
-def run_main_loop(sc): 
-    print("Enter chronos")
-    __compute_values()
-    s.enter(30, 1, run_main_loop, (sc,))
+if __name__ == "__main__":
+    print("Hello, welcome to the stock fetcher!")
+    __compute_weights()
 
-s.enter(1, 1, run_main_loop, (s,))
-s.run()
+    print("Start rolling")
+    s = sched.scheduler(time.time, time.sleep)
+    def run_main_loop(sc): 
+        print("Enter chronos")
+        __compute_values()
+        s.enter(30, 1, run_main_loop, (sc,))
+
+    s.enter(1, 1, run_main_loop, (s,))
+    s.run()
