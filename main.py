@@ -21,7 +21,6 @@ def __compute_weights():
         # Get html text
         html = requests.get(YAHOO_URL.format(key, key), headers=HEADERS).text
         soup = BeautifulSoup(html, 'html.parser')
-        print(value)
 
         # Get Previous close value
         td = soup.find("td", {"class":"Ta(end) Fw(600) Lh(14px)"})
@@ -68,7 +67,9 @@ def __compute_values():
         total = total_value
 
     # Round to 0.5 
-    total_value = round(total_value * 2) / 2
+    total_value = round(total_value / 0.05) * 0.05
+    # Trim to 2 digits
+    total_value = round(total_value, 2)
 
     # Adapt value if out of dictionary's keys
     if total_value > 5.00:
@@ -80,7 +81,7 @@ def __compute_values():
     
     requests.post(url = SERVER_LED_URL + rgb)
 
-    print("{:9}".format("Total") + "{:.2f}".format(total))
+    print("{:9}".format("Total") + "{:.2f}".format(total) + " - RGB " + rgb)
 
 ## END LOOP FOR EACH STOCK
 
